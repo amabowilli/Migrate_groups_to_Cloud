@@ -12,6 +12,7 @@ class ServerUserData:
 class SeverGroups(ServerInstance):
     
     def get_groups(self, page=None, limit=1_000) -> Generator[str, None, None]:
+        # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp5
         while True:
             headers = {'Accept': 'application/json'}
             params = {'page': page, 'limit': limit}
@@ -28,6 +29,7 @@ class SeverGroups(ServerInstance):
             page += 1
 
     def get_group_members(self, group, page=None, limit=1_000) -> Generator[ServerUserData, None, None]:
+        # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp11
         while True:
             headers = {'Accept': 'application/json'}
             params = {'context': group,'page': page, 'limit': limit}
@@ -47,7 +49,9 @@ class SeverGroups(ServerInstance):
 class CloudGroups(CloudInstance):
 
     def create_group(self, group):
+        # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
         pass
 
     def add_member_to_group(self, group):
+        # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
         pass
