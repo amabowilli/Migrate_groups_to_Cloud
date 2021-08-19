@@ -10,7 +10,6 @@ def mirror_groups(server, cloud):
         #cg.create_group(cloud, group)
         for member in sg.get_group_members(server, group):
             group_memberships += 1
-            print(member.emailAddress)
             #cg.add_member_to_group(cloud, member, group)
     return group_memberships, group_counter
 
