@@ -10,6 +10,24 @@ class ServerUserData:
     slug: str
 
 class ServerActions(ServerInstance):
+
+    def get_group_permissions(self, page=None, limit=1_000) -> Generator[str, None, None]:
+        # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp63
+        while True:
+            headers = {'Accept': 'application/json'}
+            params = {'page': page, 'limit': limit}
+            endpoint = f'{self.api}/admin/permissions/groups'
+            r = self.session.get(endpoint, params=params, headers=headers)
+            r_json = r.json()
+            for group_data in r_json['values']:
+                yield group_data.get('group').get('name'), group_data.get('permission')
+
+            if not r_json.get('nextPageStart'):
+                return
+            
+            if page == None:
+                page = 1
+            page += 1
     
     def get_groups(self, page=None, limit=1_000) -> Generator[str, None, None]:
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp5
