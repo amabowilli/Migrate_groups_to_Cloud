@@ -16,7 +16,8 @@ class ServerActions(ServerInstance):
         while True:
             headers = {'Accept': 'application/json'}
             params = {'page': page, 'limit': limit}
-            r = self.session.get(f'{self.api}/admin/groups', params=params, headers=headers)
+            endpoint = f'{self.api}/admin/groups'
+            r = self.session.get(endpoint, params=params, headers=headers)
             r_json = r.json()
             for group_data in r_json['values']:
                 yield group_data.get('name')
@@ -33,7 +34,8 @@ class ServerActions(ServerInstance):
         while True:
             headers = {'Accept': 'application/json'}
             params = {'context': group,'page': page, 'limit': limit}
-            r = self.session.get(f'{self.api}/admin/groups/more-members', params=params, headers=headers)
+            endpoint = f'{self.api}/admin/groups/more-members'
+            r = self.session.get(endpoint, params=params, headers=headers)
             r_json = r.json()
             for user_data in r_json['values']:
                 user = ServerUserData(user_data.get("name"), user_data.get("emailAddress"), user_data.get("displayName"), user_data.get("slug"))
@@ -57,7 +59,17 @@ class CloudActions(CloudInstance):
 
     def create_group(self, group) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
-        pass
+        payload = f'name={group}'
+        endpoint = f'{self.api}/1.0/groups/{self.workspace}'
+        r = self.session.post(endpoint, data=payload)
+        if r.status_code == 200:
+            # Successfully created
+            return True
+        elif r.status_code == 400:
+            # Already exists, return true to progress to assigning members
+            return True
+        else:
+            return False
 
     def add_member_to_group(self, group, member) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
