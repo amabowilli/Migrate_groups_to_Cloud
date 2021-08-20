@@ -89,6 +89,21 @@ class CloudActions(CloudInstance):
         else:
             return False
 
+    def set_group_permissions(self, group: str, privilege: str, account_privilege: str) -> bool:
+        '''
+        param privilege: can be "None", "Read", "Write", or "Admin". Applies the given default permission to all repos within the workspace
+        param account_privilege: can be "None", "collaborator", or "admin". Enables the checkboxes for "Create Repositories" and "Administer workspace" respectively
+        '''
+        # sourced from web broswer devpanel, no public API available
+        endpoint = f"https://bitbucket.org/api/internal/workspaces/{self.workspace}/groups/{group}"
+        headers = {"Accept": "application/json", "Content-type": "application/json"}
+        payload = {"name": group, "privilege": privilege, "account_privilege": account_privilege}
+        r = self.session.put(endpoint, headers=headers, data=payload)
+        if r.status_code == 200:
+            return True
+        else:
+            return False
+
     def add_member_to_group(self, group: str, member: ServerUserData) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
         headers = {'Content-type': 'application/json'}
@@ -104,5 +119,5 @@ class CloudActions(CloudInstance):
             # 404 is thrown if the user isn't within the workspace yet
             return False
 
-    def add_group_to_repo(self, project, repo):
+    def add_group_to_repo(self, project: str, repo: str) -> bool:
         pass
