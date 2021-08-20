@@ -1,9 +1,10 @@
 from resources.instance_actions import Group, ServerActions as SA, CloudActions as CA
+from resources.instance_init import ServerInstance, CloudInstance
 from typing import Tuple
 
 class ServerDetails:
     @staticmethod
-    def scan_server_structure(server) -> Tuple[list, dict, dict]:
+    def scan_server_structure(server: ServerInstance) -> Tuple[list, dict, dict]:
         groups_to_migrate = []
         global_groups = []
         for group in SA.get_group_global_permissions(server):
@@ -18,7 +19,7 @@ class ServerDetails:
         return groups_to_migrate, global_groups, server_structure
 
     @staticmethod
-    def get_project_and_repo_structure(server) -> Tuple[list[Group], dict]:
+    def get_project_and_repo_structure(server: ServerInstance) -> Tuple[list[Group], dict]:
         used_groups = [] # list of Group objects
         project_repo_structure = {'projects': []}
 
@@ -40,7 +41,7 @@ class ServerDetails:
 
 class ActionOnItems:
     @staticmethod
-    def mirror_groups(server, cloud, groups_to_migrate) -> None:
+    def mirror_groups(server: ServerInstance, cloud: CloudInstance, groups_to_migrate: list, global_groups: list[Group]) -> None:
         group_counter = 0
         group_memberships = 0
         
@@ -77,7 +78,7 @@ class ActionOnItems:
         pass
 
     @staticmethod
-    def mirror_repo_groups(server, cloud) -> None:
+    def mirror_repo_groups(server: ServerInstance, cloud: CloudInstance) -> None:
         #TODO
         repo_counter = 0
 
