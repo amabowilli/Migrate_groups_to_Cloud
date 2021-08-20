@@ -20,7 +20,7 @@ class ServerDetails:
 
     @staticmethod
     def get_project_and_repo_structure(server: ServerInstance) -> Tuple[list[Group], dict]:
-        used_groups = [] # list of Group objects
+        used_groups = []
         project_repo_structure = {'projects': []}
 
         for project in SA.get_projects(server):
