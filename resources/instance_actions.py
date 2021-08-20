@@ -103,7 +103,7 @@ class ServerActions(ServerInstance):
             r = self.session.get(endpoint, params=params, headers=headers)
             r_json = r.json()
             for project_data in r_json['values']:
-                project_default_permission = ServerActions.get_project_default_permission(self, project_data.get('key'))
+                project_default_permission = ServerActions.get_project_default_permission(self, project_data)
                 project = Project(project_data.get('key'), project_data.get('name'), project_data.get('public'), project_default_permission)
                 yield project
 
