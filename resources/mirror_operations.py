@@ -50,7 +50,7 @@ class ActionOnItems:
         
         for group in groups_to_migrate:
             if not CA.create_group(cloud, group):
-                print(f'WARN: Failed to mirror group "{group}" to your cloud instance')
+                print(f'WARN: Failed to mirror group "{group}" to your cloud instance for unknown reason.')
                 continue
             group_migration = {'total_users': [], 'migrated_users': []}
             group_counter += 1
