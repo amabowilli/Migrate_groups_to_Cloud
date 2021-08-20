@@ -22,7 +22,10 @@ class ServerDetails:
     def get_project_and_repo_structure(server: ServerInstance) -> Tuple[list[Group], dict]:
         used_groups = []
         project_repo_structure = {'projects': []}
-
+        ''' TODO
+        Potentially speed up the script by multi-threading out each group and repo respectively
+        as there's a lot of wasted time waiting for network responses (I/O).
+        '''
         for project in SA.get_projects(server):
             for group in SA.get_project_groups(server, project):
                 project.groups.append(group)
