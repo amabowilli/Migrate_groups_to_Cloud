@@ -1,9 +1,9 @@
 from resources.instance_init import ServerInstance, CloudInstance
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Generator
 
 @dataclass
-class ServerUserData:
+class User:
     name: str
     emailAddress: str
     displayName: str
@@ -16,10 +16,11 @@ class GlobalGroup:
 
 @dataclass
 class Project:
+    key: str
     name: str
     default_permission: str
-    groups: list = []
-    repositories: list = []
+    groups: list = field(default_factory=lambda: [])
+    repositories: list = field(default_factory=lambda: [])
 
 @dataclass
 class Group:
@@ -28,9 +29,10 @@ class Group:
 
 @dataclass
 class Repository:
+    slug: str
     name: str
     default_permission: str
-    groups: list = []
+    groups: list = field(default_factory=lambda: [])
 
 class ServerActions(ServerInstance):
 
@@ -53,7 +55,7 @@ class ServerActions(ServerInstance):
                 page = 1
             page += 1
     
-    def get_groups(self, page=None, limit=1_000) -> Generator[Group, None, None]:
+    def get_all_groups(self, page=None, limit=1_000) -> Generator[Group, None, None]:
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp5
         while True:
             headers = {'Accept': 'application/json'}
@@ -72,16 +74,16 @@ class ServerActions(ServerInstance):
                 page = 1
             page += 1
 
-    def get_group_members(self, group: str, page=None, limit=1_000) -> Generator[ServerUserData, None, None]:
+    def get_group_members(self, group: Group, page=None, limit=1_000) -> Generator[User, None, None]:
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp11
         while True:
             headers = {'Accept': 'application/json'}
-            params = {'context': group,'page': page, 'limit': limit}
+            params = {'context': group.name,'page': page, 'limit': limit}
             endpoint = f'{self.api}/admin/groups/more-members'
             r = self.session.get(endpoint, params=params, headers=headers)
             r_json = r.json()
             for user_data in r_json['values']:
-                user = ServerUserData(user_data.get("name"), user_data.get("emailAddress"), user_data.get("displayName"), user_data.get("slug"))
+                user = User(user_data.get("name"), user_data.get("emailAddress"), user_data.get("displayName"), user_data.get("slug"))
                 yield user
 
             if not r_json.get('nextPageStart'):
@@ -91,12 +93,91 @@ class ServerActions(ServerInstance):
                 page = 1
             page += 1
 
-    def get_projects(self, page=None, limit=1_000):
-        pass
+    def get_projects(self, page=None, limit=1_000) -> Generator[Project, None, None]:
+        # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp149
+        while True:
+            headers = {'Accept': 'application/json'}
+            params = {'page': page, 'limit': limit}
+            endpoint = f'{self.api}/projects'
+            r = self.session.get(endpoint, params=params, headers=headers)
+            r_json = r.json()
+            for project_data in r_json['values']:
+                project_default_permission = ServerActions.get_project_default_permission(self, project_data.get('key'))
+                project = Project(project_data.get('key'), project_data.get('name'), project_default_permission)
+                yield project
 
-    def get_repos(self, project, page=None, limit=1_000):
-        pass
+            if not r_json.get('nextPageStart'):
+                return
+            
+            if page == None:
+                page = 1
+            page += 1
+    
+    def get_project_default_permission(self, project_key: str) -> str:
+        #TODO Get project specific default permission https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp171
+        return "None"
 
+    def get_project_groups(self, project: Project, page=None, limit=1_000) -> Generator[Group, None, None]:
+        # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp159
+        while True:
+            headers = {'Accept': 'application/json'}
+            params = {'page': page, 'limit': limit}
+            endpoint = f'{self.api}/projects/{project.key}/permissions/groups'
+            r = self.session.get(endpoint, params=params, headers=headers)
+            r_json = r.json()
+            for group_data in r_json['values']:
+                group = Group(group_data.get('group').get('name'), group_data.get('permission'))
+                yield group
+
+            if not r_json.get('nextPageStart'):
+                return
+            
+            if page == None:
+                page = 1
+            page += 1
+
+    def get_repos(self, project: Project, page=None, limit=1_000) -> Generator[Repository, None, None]:
+        # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp175
+        while True:
+            headers = {'Accept': 'application/json'}
+            params = {'page': page, 'limit': limit}
+            endpoint = f'{self.api}/projects/{project.key}/repos'
+            r = self.session.get(endpoint, params=params, headers=headers)
+            r_json = r.json()
+            for repo_data in r_json['values']:
+                repo_default_permission = ServerActions.get_repo_default_permission(self, project.key, repo_data.get('slug'))
+                project = Project(repo_data.get('slug'), repo_data.get('name'), repo_default_permission)
+                yield project
+
+            if not r_json.get('nextPageStart'):
+                return
+            
+            if page == None:
+                page = 1
+            page += 1
+
+    def get_repo_default_permission(self, project_key: str, repo_slug: str) -> str:
+        #TODO Get repo specific default permission
+        return "None"
+
+    def get_repo_groups(self, project: Project, repo: Repository, page=None, limit=1_000) -> Generator[Group, None, None]:
+        # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp282
+        while True:
+            headers = {'Accept': 'application/json'}
+            params = {'page': page, 'limit': limit}
+            endpoint = f'{self.api}/projects/{project.key}/repos/{repo.slug}/permissions/groups'
+            r = self.session.get(endpoint, params=params, headers=headers)
+            r_json = r.json()
+            for group_data in r_json['values']:
+                group = Group(group_data.get('group').get('name'), group_data.get('permission'))
+                yield group
+
+            if not r_json.get('nextPageStart'):
+                return
+            
+            if page == None:
+                page = 1
+            page += 1
 
 class CloudActions(CloudInstance):
 
@@ -129,7 +210,7 @@ class CloudActions(CloudInstance):
         else:
             return False
 
-    def add_member_to_group(self, group: str, member: ServerUserData) -> bool:
+    def add_member_to_group(self, group: str, member: User) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
         headers = {'Content-type': 'application/json'}
         payload = '{}'
