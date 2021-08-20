@@ -4,7 +4,7 @@ from typing import Tuple
 
 class ServerDetails:
     @staticmethod
-    def scan_server_structure(server: ServerInstance) -> Tuple[list, dict, dict]:
+    def scan_server_structure(server: ServerInstance) -> Tuple[list, dict, list]:
         groups_to_migrate = []
         global_groups = []
         for group in SA.get_group_global_permissions(server):
@@ -19,9 +19,9 @@ class ServerDetails:
         return groups_to_migrate, global_groups, server_structure
 
     @staticmethod
-    def get_project_and_repo_structure(server: ServerInstance) -> Tuple[list[Group], dict]:
+    def get_project_and_repo_structure(server: ServerInstance) -> Tuple[list[Group], list]:
         used_groups = []
-        project_repo_structure = {'projects': []}
+        project_repo_structure = []
         ''' TODO
         Potentially speed up the script by multi-threading out each group and repo respectively
         as there's a lot of wasted time waiting for network responses (I/O).
@@ -37,7 +37,7 @@ class ServerDetails:
                     if group.name not in used_groups:
                         used_groups.append(group)
                 project.repositories.append(repo)
-            project_repo_structure['projects'].append(project)
+            project_repo_structure.append(project)
 
         return used_groups, project_repo_structure
 
