@@ -29,7 +29,7 @@ class ServerActions(ServerInstance):
                 page = 1
             page += 1
 
-    def get_group_members(self, group, page=None, limit=1_000) -> Generator[ServerUserData, None, None]:
+    def get_group_members(self, group: str, page=None, limit=1_000) -> Generator[ServerUserData, None, None]:
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp11
         while True:
             headers = {'Accept': 'application/json'}
@@ -57,7 +57,7 @@ class ServerActions(ServerInstance):
 
 class CloudActions(CloudInstance):
 
-    def create_group(self, group) -> bool:
+    def create_group(self, group: str) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
         payload = f'name={group}'
         endpoint = f'{self.api}/1.0/groups/{self.workspace}'
@@ -71,9 +71,20 @@ class CloudActions(CloudInstance):
         else:
             return False
 
-    def add_member_to_group(self, group, member) -> bool:
+    def add_member_to_group(self, group: str, member: ServerUserData) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
-        pass
+        headers = {'Content-type': 'application/json'}
+        payload = '{}'
+        endpoint = f'{self.api}/1.0/groups/{self.workspace}/{group}/members/{member.emailAddress}/'
+        r = self.session.put(endpoint, headers=headers, data=payload)
+        if r.status_code == 200:
+            return True
+        elif r.status_code == 409:
+            # 409 is thrown if the user is already in the group
+            return True
+        else:
+            # 404 is thrown if the user isn't within the workspace yet
+            return False
 
     def add_group_to_repo(self, project, repo):
         pass
