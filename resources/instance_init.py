@@ -1,11 +1,7 @@
 from requests import Session
 from requests.exceptions import SSLError
 import env
-
-
-class InstanceNotAvailable(Exception):
-    def __init__(self, msg) -> None:
-        super().__init__(msg)
+from resources.exceptions import InstanceNotAvailable
 
 class Instance():
     def __init__():

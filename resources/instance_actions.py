@@ -1,4 +1,4 @@
-from resources.instances import ServerInstance, CloudInstance
+from resources.instance_init import ServerInstance, CloudInstance
 from dataclasses import dataclass
 from typing import Generator
 
@@ -9,7 +9,7 @@ class ServerUserData:
     displayName: str
     slug: str
 
-class SeverGroups(ServerInstance):
+class ServerActions(ServerInstance):
     
     def get_groups(self, page=None, limit=1_000) -> Generator[str, None, None]:
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp5
@@ -46,12 +46,22 @@ class SeverGroups(ServerInstance):
                 page = 1
             page += 1
 
-class CloudGroups(CloudInstance):
+    def get_projects(self, page=None, limit=1_000):
+        pass
 
-    def create_group(self, group):
+    def get_repos(self, project, page=None, limit=1_000):
+        pass
+
+
+class CloudActions(CloudInstance):
+
+    def create_group(self, group) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
         pass
 
-    def add_member_to_group(self, group):
+    def add_member_to_group(self, group, member) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
+        pass
+
+    def add_group_to_repo(self, project, repo):
         pass
