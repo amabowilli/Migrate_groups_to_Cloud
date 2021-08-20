@@ -1,4 +1,4 @@
-# How to Use
+## How to Use
 Rename or copy the "env_template.py" file to "env.py" and populate all fields
 
 Configure python virtual environment and install package dependencies with:
@@ -11,3 +11,7 @@ Configure python virtual environment and install package dependencies with:
 Run script with:
 
         python3 mirror_group_permissions.py
+
+## Notes
+* Users and groups that already exist within your cloud instance will be counted as successful user/group migrations in the counters included in the output
+* Only migrates groups that are actually in use within Bitbucket Server/DC.
