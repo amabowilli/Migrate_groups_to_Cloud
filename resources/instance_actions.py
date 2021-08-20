@@ -9,9 +9,32 @@ class ServerUserData:
     displayName: str
     slug: str
 
+@dataclass
+class GlobalGroup:
+    name: str
+    permission: str
+
+@dataclass
+class Project:
+    name: str
+    default_permission: str
+    groups: list = []
+    repositories: list = []
+
+@dataclass
+class Group:
+    name: str
+    permission: str = None
+
+@dataclass
+class Repository:
+    name: str
+    default_permission: str
+    groups: list = []
+
 class ServerActions(ServerInstance):
 
-    def get_group_permissions(self, page=None, limit=1_000) -> Generator[(str, str), None, None]:
+    def get_group_global_permissions(self, page=None, limit=1_000) -> Generator[GlobalGroup, None, None]:
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp63
         while True:
             headers = {'Accept': 'application/json'}
@@ -20,7 +43,8 @@ class ServerActions(ServerInstance):
             r = self.session.get(endpoint, params=params, headers=headers)
             r_json = r.json()
             for group_data in r_json['values']:
-                yield group_data.get('group').get('name'), group_data.get('permission')
+                group = GlobalGroup(group_data.get('group').get('name'), group_data.get('permission'))
+                yield group
 
             if not r_json.get('nextPageStart'):
                 return
@@ -29,7 +53,7 @@ class ServerActions(ServerInstance):
                 page = 1
             page += 1
     
-    def get_groups(self, page=None, limit=1_000) -> Generator[str, None, None]:
+    def get_groups(self, page=None, limit=1_000) -> Generator[Group, None, None]:
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp5
         while True:
             headers = {'Accept': 'application/json'}
@@ -38,7 +62,8 @@ class ServerActions(ServerInstance):
             r = self.session.get(endpoint, params=params, headers=headers)
             r_json = r.json()
             for group_data in r_json['values']:
-                yield group_data.get('name')
+                group = Group(group_data.get('name'))
+                yield group
 
             if not r_json.get('nextPageStart'):
                 return
