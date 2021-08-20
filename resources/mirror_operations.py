@@ -5,9 +5,9 @@ class ServerDetails:
     @staticmethod
     def scan_server_structure(server) -> Tuple[list, dict, dict]:
         groups_to_migrate = []
-
-        global_groups = [group for group in SA.get_group_global_permissions(server)]
-        for group in global_groups:
+        global_groups = []
+        for group in SA.get_group_global_permissions(server):
+            global_groups.append(group)
             groups_to_migrate.append(group.name)
 
         used_groups, server_structure = ServerDetails.get_project_and_repo_structure(server)
@@ -19,22 +19,21 @@ class ServerDetails:
 
     @staticmethod
     def get_project_and_repo_structure(server) -> Tuple[list[Group], dict]:
-        used_groups = []
+        used_groups = [] # list of Group objects
         project_repo_structure = {'projects': []}
 
-        #TODO convert dataclass objects to dicts for structure building
         for project in SA.get_projects(server):
-            project_repo_structure['projects'].append(project)
             for group in SA.get_project_groups(server, project):
-                project_repo_structure['projects'][project]['groups'].append(group)
-                if group not in used_groups:
+                project.groups.append(group)
+                if group.name not in used_groups:
                     used_groups.append(group)
             for repo in SA.get_repos(server, project):
-                project_repo_structure['projects'][project]['repositories'].append(repo)
                 for group in SA.get_repo_groups(server, project, repo):
-                    project_repo_structure['projects'][project]['repositories'][repo]['groups'].append(group)
-                    if group not in used_groups:
-                        used_groups.append(group.name)
+                    repo.groups.append(group)
+                    if group.name not in used_groups:
+                        used_groups.append(group)
+                project.repositories.append(repo)
+            project_repo_structure['projects'].append(project)
 
         return used_groups, project_repo_structure
 

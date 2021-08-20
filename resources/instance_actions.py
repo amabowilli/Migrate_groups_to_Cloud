@@ -18,6 +18,7 @@ class GlobalGroup:
 class Project:
     key: str
     name: str
+    public: bool
     default_permission: str
     groups: list = field(default_factory=lambda: [])
     repositories: list = field(default_factory=lambda: [])
@@ -103,7 +104,7 @@ class ServerActions(ServerInstance):
             r_json = r.json()
             for project_data in r_json['values']:
                 project_default_permission = ServerActions.get_project_default_permission(self, project_data.get('key'))
-                project = Project(project_data.get('key'), project_data.get('name'), project_default_permission)
+                project = Project(project_data.get('key'), project_data.get('name'), project_data.get('public'), project_default_permission)
                 yield project
 
             if not r_json.get('nextPageStart'):
@@ -113,9 +114,26 @@ class ServerActions(ServerInstance):
                 page = 1
             page += 1
     
-    def get_project_default_permission(self, project_key: str) -> str:
-        #TODO Get project specific default permission https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp171
-        return "None"
+    def get_project_default_permission(self, project: dict) -> str:
+        # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp171
+        headers = {'Accept': 'application/json'}
+        endpoint = f'{self.api}/projects/{project.get("key")}/permissions/project_write/all'
+        r = self.session.get(endpoint, headers=headers)
+        r_json = r.json()
+        if r_json.get('permitted') == True:
+            default_permission = "Write"
+        else:
+            if project.get('public') == True:
+                default_permission = "Read"
+            else:
+                endpoint = f'{self.api}/projects/{project.get("key")}/permissions/project_read/all'
+                r = self.session.get(endpoint, headers=headers)
+                r_json = r.json()
+                if r_json.get('permitted') == True:
+                    default_permission = "Read"
+                else:
+                    default_permission = "None"
+        return default_permission
 
     def get_project_groups(self, project: Project, page=None, limit=1_000) -> Generator[Group, None, None]:
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp159
@@ -145,20 +163,18 @@ class ServerActions(ServerInstance):
             r = self.session.get(endpoint, params=params, headers=headers)
             r_json = r.json()
             for repo_data in r_json['values']:
-                repo_default_permission = ServerActions.get_repo_default_permission(self, project.key, repo_data.get('slug'))
-                project = Project(repo_data.get('slug'), repo_data.get('name'), repo_default_permission)
-                yield project
-
+                if repo_data.get('public') == True:
+                    repo_default_permission = "Read"
+                else:
+                    repo_default_permission = "None"
+                repo = Repository(repo_data.get('slug'), repo_data.get('name'), repo_default_permission)
+                yield repo
             if not r_json.get('nextPageStart'):
                 return
             
             if page == None:
                 page = 1
             page += 1
-
-    def get_repo_default_permission(self, project_key: str, repo_slug: str) -> str:
-        #TODO Get repo specific default permission
-        return "None"
 
     def get_repo_groups(self, project: Project, repo: Repository, page=None, limit=1_000) -> Generator[Group, None, None]:
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp282
