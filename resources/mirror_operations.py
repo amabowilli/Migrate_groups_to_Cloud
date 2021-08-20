@@ -44,7 +44,7 @@ class ServerDetails:
 
 class ActionOnItems:
     @staticmethod
-    def mirror_groups(server: ServerInstance, cloud: CloudInstance, groups_to_migrate: list, global_groups: list[Group]) -> None:
+    def mirror_groups(server: ServerInstance, cloud: CloudInstance, groups_to_migrate: list[str], global_groups: list[Group]) -> None:
         group_counter = 0
         group_memberships = 0
         
