@@ -15,3 +15,4 @@ Run script with:
 ## Notes
 * Users and groups that already exist within your cloud instance will be counted as successful user/group migrations in the counters included in the output
 * Only migrates groups that are actually in use within Bitbucket Server/DC.
+* Any groups with "System Admin" or "Admin", within [Server's global permissions](https://confluence.atlassian.com/bitbucketserver/global-permissions-776640369.html), will inherit global admin within cloud
