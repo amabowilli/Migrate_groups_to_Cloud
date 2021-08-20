@@ -11,7 +11,7 @@ class ServerUserData:
 
 class ServerActions(ServerInstance):
 
-    def get_group_permissions(self, page=None, limit=1_000) -> Generator[str, None, None]:
+    def get_group_permissions(self, page=None, limit=1_000) -> Generator[(str, str), None, None]:
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp63
         while True:
             headers = {'Accept': 'application/json'}
