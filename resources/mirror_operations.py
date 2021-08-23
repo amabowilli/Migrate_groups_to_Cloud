@@ -119,7 +119,7 @@ class ActionOnItems:
     @staticmethod
     def max_permission(project_default_permission: str, project_groups: list[Group], repo_default_permission: str, repo_groups: list[Group], groups_to_migrate: list[str]) -> str:
         '''
-        project_default can be "None", "Read", "Write" or "Admin"
+        project_default can be "None", "Read", or "Write"
         project_permission can be "None", "Read", "Write" or "Admin"
         repo_permission can be "None", "Read", "Write", or "Admin"
         repo_default can be "None" or "Read" (public checkbox)
