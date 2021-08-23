@@ -35,13 +35,17 @@ class ServerInstance(Instance):
     def verify_url(self):
         try:
             r = self.session.get(f'{self.url}/status')
-            self.verify = True #Using https and ssl cert is good
+            self.ssl_verified = True #Using https and ssl cert is good
         except SSLError:
-            self.verify = False # Using https and ssl cert is self-signed or other issue, ignorable
-            r = self.session.get(f'{self.url}/status', verify=self.verify)
+            self.ssl_verified = False # Using https and ssl cert is self-signed or other issue, ignorable
+            r = self.session.get(f'{self.url}/status', verify=self.ssl_verified)
 
         if not "RUNNING" in r.text:
             raise InstanceNotAvailable(f'Did not get a "RUNNING" response from the url "{self.url}/status"')
+        
+    def get_api(self, endpoint=None, headers=None, params=None):
+        r = self.session.get(endpoint, headers=headers, params=params, verify=self.ssl_verified)
+        return r
 
 
 class CloudInstance(Instance):

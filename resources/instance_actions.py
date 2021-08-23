@@ -43,7 +43,7 @@ class ServerActions(ServerInstance):
             headers = {'Accept': 'application/json'}
             params = {'page': page, 'limit': limit}
             endpoint = f'{self.api}/admin/permissions/groups'
-            r = self.session.get(endpoint, params=params, headers=headers)
+            r = self.get_api(endpoint, params=params, headers=headers)
             r_json = r.json()
             for group_data in r_json['values']:
                 group = GlobalGroup(group_data.get('group').get('name'), group_data.get('permission'))
@@ -62,7 +62,7 @@ class ServerActions(ServerInstance):
             headers = {'Accept': 'application/json'}
             params = {'page': page, 'limit': limit}
             endpoint = f'{self.api}/admin/groups'
-            r = self.session.get(endpoint, params=params, headers=headers)
+            r = self.get_api(endpoint, params=params, headers=headers)
             r_json = r.json()
             for group_data in r_json['values']:
                 group = Group(group_data.get('name'))
@@ -81,7 +81,7 @@ class ServerActions(ServerInstance):
             headers = {'Accept': 'application/json'}
             params = {'context': group_name,'page': page, 'limit': limit}
             endpoint = f'{self.api}/admin/groups/more-members'
-            r = self.session.get(endpoint, params=params, headers=headers)
+            r = self.get_api(endpoint, params=params, headers=headers)
             r_json = r.json()
             for user_data in r_json['values']:
                 user = User(user_data.get("name"), user_data.get("emailAddress"), user_data.get("displayName"), user_data.get("slug"))
@@ -100,7 +100,7 @@ class ServerActions(ServerInstance):
             headers = {'Accept': 'application/json'}
             params = {'page': page, 'limit': limit}
             endpoint = f'{self.api}/projects'
-            r = self.session.get(endpoint, params=params, headers=headers)
+            r = self.get_api(endpoint, params=params, headers=headers)
             r_json = r.json()
             for project_data in r_json['values']:
                 project_default_permission = ServerActions.get_project_default_permission(self, project_data)
@@ -118,7 +118,7 @@ class ServerActions(ServerInstance):
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp171
         headers = {'Accept': 'application/json'}
         endpoint = f'{self.api}/projects/{project.get("key")}/permissions/project_write/all'
-        r = self.session.get(endpoint, headers=headers)
+        r = self.get_api(endpoint, headers=headers)
         r_json = r.json()
         if r_json.get('permitted') == True:
             default_permission = "Write"
@@ -141,7 +141,7 @@ class ServerActions(ServerInstance):
             headers = {'Accept': 'application/json'}
             params = {'page': page, 'limit': limit}
             endpoint = f'{self.api}/projects/{project.key}/permissions/groups'
-            r = self.session.get(endpoint, params=params, headers=headers)
+            r = self.get_api(endpoint, params=params, headers=headers)
             r_json = r.json()
             for group_data in r_json['values']:
                 group = Group(group_data.get('group').get('name'), group_data.get('permission'))
@@ -160,7 +160,7 @@ class ServerActions(ServerInstance):
             headers = {'Accept': 'application/json'}
             params = {'page': page, 'limit': limit}
             endpoint = f'{self.api}/projects/{project.key}/repos'
-            r = self.session.get(endpoint, params=params, headers=headers)
+            r = self.get_api(endpoint, params=params, headers=headers)
             r_json = r.json()
             for repo_data in r_json['values']:
                 if repo_data.get('public') == True:
@@ -182,7 +182,7 @@ class ServerActions(ServerInstance):
             headers = {'Accept': 'application/json'}
             params = {'page': page, 'limit': limit}
             endpoint = f'{self.api}/projects/{project.key}/repos/{repo.slug}/permissions/groups'
-            r = self.session.get(endpoint, params=params, headers=headers)
+            r = self.get_api(endpoint, params=params, headers=headers)
             r_json = r.json()
             for group_data in r_json['values']:
                 group = Group(group_data.get('group').get('name'), group_data.get('permission'))
