@@ -1,4 +1,4 @@
-from resources.instance_actions import Group, ServerActions as SA, CloudActions as CA
+from resources.instance_actions import Group, Project, Repository, ServerActions as SA, CloudActions as CA
 from resources.instance_init import ServerInstance, CloudInstance
 from typing import Tuple
 
@@ -81,13 +81,13 @@ class ActionOnItems:
             # do nothing as this is already implied by existing in the workspace
             return True
         elif group.permission == "PROJECT_CREATE":
-            privilege = "None" # No default read/write/admin on any existing content
+            privilege = "none" # No default read/write/admin on any existing content
             account_privilege = "collaborator" # Can create new content though
         elif group.permission == "ADMIN":
-            privilege = "Admin" # Admin on all existing content
+            privilege = "admin" # Admin on all existing content
             account_privilege = "collaborator" # Can create new content
         elif group.permission == "SYS_ADMIN":
-            privilege = "Admin" # Admin on all existing content
+            privilege = "admin" # Admin on all existing content
             account_privilege = "admin" # Admin on workspace itself
 
         if CA.set_group_global_permissions(cloud, group.name, privilege, account_privilege):
@@ -96,20 +96,61 @@ class ActionOnItems:
         return False
 
     @staticmethod
-    def max_permission(project_permission: str, repo_permission: str, repo_default: str) -> str:
-        '''
-        project_permission can be "None", "Read", "Write" or "Admin"
-        repo_permission can be "None", "Read", "Write", or "Admin"
-        repo_default can be "None", Read", or "Write"
-        
-        Determine the flattened/effective permission
-        '''
-        #TODO
-        pass
+    def mirror_repo_groups(server: ServerInstance, cloud: CloudInstance, groups_to_migrate: list[str], server_structure: list[Project]) -> None:
+        successful_repo_counter = 0
+        total_repo_counter = 0
+        for project in server_structure:
+            repo: Repository
+            for repo in project.repositories:
+                print(f'INFO: Mirroring group permissions for repo: "{repo.name}"')
+                atleast_one_group_migrated = False
+                for group_name, flattened_permission in ActionOnItems.max_permission(project.default_permission, project.groups, repo.default_permission, repo.groups, groups_to_migrate):
+                    if flattened_permission == "none":
+                        continue
+                    if CA.add_group_to_repo(cloud, repo.slug, group_name, flattened_permission):
+                        atleast_one_group_migrated = True
+                    else:
+                        print(f'WARN: Failed to add group "{group_name}" with permission "{flattened_permission}" to "{repo.name}".')
+                if atleast_one_group_migrated:
+                    successful_repo_counter += 1
+                total_repo_counter += 1
+        print(f'INFO: Successfully mirrored the groups/permissions for {successful_repo_counter} of {total_repo_counter} repositories.')
 
     @staticmethod
-    def mirror_repo_groups(server: ServerInstance, cloud: CloudInstance) -> None:
-        #TODO
-        repo_counter = 0
+    def max_permission(project_default_permission: str, project_groups: list[Group], repo_default_permission: str, repo_groups: list[Group], groups_to_migrate: list[str]) -> str:
+        '''
+        project_default can be "None", "Read", "Write" or "Admin"
+        project_permission can be "None", "Read", "Write" or "Admin"
+        repo_permission can be "None", "Read", "Write", or "Admin"
+        repo_default can be "None", "Read", or "write"
+        
+        Determine/return the flattened/effective permission
+        '''
+        for group_name in groups_to_migrate:
+            group_project_perm = ActionOnItems.lookup_group_perm(group_name, project_groups)
+            group_repo_perm = ActionOnItems.lookup_group_perm(group_name, repo_groups)
+            perms = [project_default_permission, group_project_perm, repo_default_permission, group_repo_perm]
+            if "Admin" in perms:
+                yield group_name, "admin"
+            elif "Write" in perms:
+                yield group_name, "write"
+            elif "Read" in perms:
+                yield group_name, "read"
+            else:
+                yield group_name, "none"
 
-        print(f'INFO: Mirrored the groups/permissions for {repo_counter} repositories.')
+    @staticmethod
+    def lookup_group_perm(group_name: str, groups: list[Group]) -> str:
+        permission = "None"
+        for group in groups:
+            if group.name == group_name:
+                permission = group.permission
+                break
+
+        if permission in ["PROJECT_ADMIN", "REPO_ADMIN"]:
+            permission = "Admin"
+        elif permission in ["PROJECT_WRITE", "REPO_WRITE"]:
+            permission = "Write"
+        elif permission in ["PROJECT_READ", "REPO_READ"]:
+            permission = "Read"
+        return permission
