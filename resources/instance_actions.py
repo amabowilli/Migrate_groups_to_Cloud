@@ -242,6 +242,15 @@ class CloudActions(CloudInstance):
             # 404 is thrown if the user isn't within the workspace yet
             return False
 
+    def verify_repo_exists(self, repo_slug: str):
+        # https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D#get
+        headers = {'Accept': 'application/json'}
+        endpoint = f'{self.api}/2.0/repositories/{self.workspace}/{repo_slug}'
+        r = self.session.get(endpoint, headers=headers)
+        if r.status_code == 200:
+            return True
+        return False
+
     def add_group_to_repo(self, repo_slug: str, group_name: str, flattened_permission: str) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/group-privileges-endpoint/
         payload = flattened_permission

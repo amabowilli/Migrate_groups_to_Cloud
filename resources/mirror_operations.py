@@ -104,6 +104,9 @@ class ActionOnItems:
         for project in server_structure:
             repo: Repository
             for repo in project.repositories:
+                if not CA.verify_repo_exists(cloud, repo.slug):
+                    print(f'INFO: Skipping repo "{repo.name}" as it is not present within your cloud workspace. This may not have been migrated yet.')
+                    continue
                 print(f'INFO: Mirroring group permissions for repo: "{repo.name}"')
                 atleast_one_group_migrated = False
                 for group_name, flattened_permission in ActionOnItems.max_permission(project.default_permission, project.groups, repo.default_permission, repo.groups, groups_to_migrate):
