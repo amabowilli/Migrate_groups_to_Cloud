@@ -49,10 +49,18 @@ class CloudInstance(Instance):
         self.username = env.cloud_username
         self.password = env.cloud_password
         self.workspace = env.cloud_workspace
+        self.cookie = env.cloud_session_cookie
         self.url = f"https://bitbucket.org/{self.workspace}"
         self.api = "https://api.bitbucket.org"
         self.session = self.set_session(self.username, self.password)
         # https://developer.atlassian.com/bitbucket/api/2/reference/resource/workspaces/%7Bworkspace%7D/permissions
         verify_api_endpoint = f'{self.api}/2.0/workspaces/{self.workspace}/permissions'
         self.verify_session(verify_api_endpoint, self.session)
-
+        self.uuid = self._get_workspace_uuid()
+    
+    def _get_workspace_uuid(self):
+        headers = {'Accept': 'application/json'}
+        endpoint = f'{self.api}/2.0/workspaces/{self.workspace}'
+        r = self.session.get(endpoint, headers=headers)
+        r_json = r.json()
+        return r_json.get('uuid')
