@@ -216,6 +216,7 @@ class CloudActions(CloudInstance):
         param privilege: can be "None", "Read", "Write", or "Admin". Applies the given default permission to all repos within the workspace
         param account_privilege: can be "None", "collaborator", or "admin". Enables the checkboxes for "Create Repositories" and "Administer workspace" respectively
         '''
+        # TODO replies with a 400 currently. Doesn't look like it will accept user/pass so I tried using a cookie but that also hasn't worked yet. Needs more testing
         # sourced from web broswer devpanel, no public API available
         endpoint = f"https://bitbucket.org/api/internal/workspaces/{self.workspace}/groups/{group_name}"
         headers = {"Accept": "application/json", "Content-type": "application/json", "cookie": self.cookie}
