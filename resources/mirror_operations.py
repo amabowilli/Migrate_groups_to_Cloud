@@ -66,7 +66,9 @@ class ActionOnItems:
                 print(f'INFO: Successfully migrated all {len(group_migration["total_users"])} users in group: {group_name}')
             else:
                 print(f"WARN: Successfully migrated {len(group_migration['migrated_users'])} of {len(group_migration['total_users'])} members of {group_name}. Failed to mirror the following users to the group's membership:")
+                print('-'*10)
                 print(', '.join([user_email for user_email in group_migration['total_users'] if user_email not in group_migration['migrated_users']]))
+                print('-'*10)
 
         print(f'INFO: Mirrored {group_counter} groups with {group_memberships} group membership assignments')
 
