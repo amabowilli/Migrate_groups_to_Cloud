@@ -1,10 +1,13 @@
+import urllib3
 from resources.instance_init import ServerInstance, CloudInstance
 from resources.mirror_operations import ServerDetails as SD, ActionOnItems as AOI
+from urllib3 import disable_warnings
 
 
 def main() -> None:
     server = ServerInstance()
     cloud = CloudInstance()
+    disable_warnings(urllib3.exceptions.InsecureRequestWarning) # Hides ssl auth failure warnings if your server instance uses self-signed certs
 
     '''
     get list of groups_to_migrate to filter down to when mirroring the groups
