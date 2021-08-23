@@ -8,13 +8,13 @@ class Instance():
         pass
 
     @staticmethod
-    def set_session(username, password):
+    def set_session(username: str, password: str) -> Session:
         session = Session()
         session.auth = (username, password)
         return session
 
     @staticmethod
-    def verify_session(api_url, session):
+    def verify_session(api_url: str, session: Session):
         r = session.get(api_url)
         if r.status_code >= 400:
             raise InstanceNotAvailable(f'Could not successfully interact with the api at {api_url} with provided credentials.\n'
@@ -58,7 +58,7 @@ class CloudInstance(Instance):
         self.verify_session(verify_api_endpoint, self.session)
         self.uuid = self._get_workspace_uuid()
     
-    def _get_workspace_uuid(self):
+    def _get_workspace_uuid(self) -> str:
         headers = {'Accept': 'application/json'}
         endpoint = f'{self.api}/2.0/workspaces/{self.workspace}'
         r = self.session.get(endpoint, headers=headers)

@@ -197,9 +197,9 @@ class ServerActions(ServerInstance):
 
 class CloudActions(CloudInstance):
 
-    def create_group(self, group: str) -> bool:
+    def create_group(self, group_name: str) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
-        payload = f'name={group}'
+        payload = f'name={group_name}'
         endpoint = f'{self.api}/1.0/groups/{self.workspace}'
         r = self.session.post(endpoint, data=payload)
         if r.status_code == 200:
