@@ -122,7 +122,7 @@ class ActionOnItems:
         project_default can be "None", "Read", "Write" or "Admin"
         project_permission can be "None", "Read", "Write" or "Admin"
         repo_permission can be "None", "Read", "Write", or "Admin"
-        repo_default can be "None", "Read", or "write"
+        repo_default can be "None" or "Read" (public checkbox)
         
         Determine/return the flattened/effective permission
         '''
