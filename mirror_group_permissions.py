@@ -13,13 +13,8 @@ def main() -> None:
     '''
 
     groups_to_migrate, global_groups, server_structure = SD.scan_server_structure(server)
-    print(groups_to_migrate)
-    print()
-    print(global_groups)
-    print()
-    print(server_structure)
-    #AOI.mirror_groups(server, cloud, groups_to_migrate, global_groups)
-    #AOI.mirror_repo_groups(server, cloud)
+    AOI.mirror_groups(server, cloud, groups_to_migrate, global_groups)
+    AOI.mirror_repo_groups(server, cloud, groups_to_migrate, server_structure)
 
 
 if __name__ == '__main__':
