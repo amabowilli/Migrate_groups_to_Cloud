@@ -27,12 +27,12 @@ class ServerInstance(Instance):
         self.url = env.server_url
         self.api = f'{self.url}/rest/api/latest'
         self.session = self.set_session(self.username, self.password)
-        self.verify_url()
+        self._verify_url()
         # https://docs.atlassian.com/bitbucket-server/rest/7.15.1/bitbucket-rest.html#idp45
         verify_api_endpoint = f'{self.api}/admin/cluster'
         self.verify_session(verify_api_endpoint, self.session)
 
-    def verify_url(self):
+    def _verify_url(self):
         try:
             r = self.session.get(f'{self.url}/status')
             self.ssl_verified = True #Using https and ssl cert is good
