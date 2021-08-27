@@ -6,8 +6,10 @@ import env
 
 
 class Instance():
+    headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
+
     def __init__(self):
-        self.headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
+        pass
 
     @staticmethod
     def set_session(username: str, password: str) -> Session:
@@ -62,31 +64,27 @@ class CloudInstance(Instance):
         # https://developer.atlassian.com/bitbucket/api/2/reference/resource/workspaces/%7Bworkspace%7D/permissions
         verify_api_endpoint = f'{self.api}/2.0/workspaces/{self.workspace}/permissions'
         self.verify_session(verify_api_endpoint, self.session)
-        self.uuid = self._get_workspace_uuid()
-    
-    def _get_workspace_uuid(self) -> str:
-        headers = {'Accept': 'application/json'}
-        endpoint = f'{self.api}/2.0/workspaces/{self.workspace}'
-        r = self.session.get(endpoint, headers=headers)
-        r_json = r.json()
-        return r_json.get('uuid')
 
-    def get_api(self, endpoint) -> Response:
+    def get_api(self, endpoint: str) -> Response:
         r = self.session.get(endpoint, headers=self.headers)
         if r.status_code == 429:
             print("WARN: Hit api rate limit, sleeping for 10 seconds and then trying to resume...")
             sleep(10)
         return r
 
-    def post_api(self, endpoint, payload) -> Response:
+    def post_api(self, endpoint: str, payload: dict) -> Response:
         r = self.session.post(endpoint, data=payload)
         if r.status_code == 429:
             print("WARN: Hit api rate limit, sleeping for 10 seconds and then trying to resume...")
             sleep(10)
         return r
 
-    def put_api(self, endpoint, payload) -> Response:
-        r = self.session.put(endpoint, data=payload, headers=self.headers)
+    def put_api(self, endpoint: str, payload, data_method: str) -> Response:
+        if data_method == "data":
+            r = self.session.put(endpoint, data=payload)
+        elif data_method == "json":
+            r = self.session.put(endpoint, json=payload, headers=self.headers)
+
         if r.status_code == 429:
             print("WARN: Hit api rate limit, sleeping for 10 seconds and then trying to resume...")
             sleep(10)
