@@ -1,11 +1,13 @@
-from requests import Session
+from requests import Session, Response
 from requests.exceptions import SSLError
-import env
+from time import sleep
 from resources.exceptions import InstanceNotAvailable
+import env
+
 
 class Instance():
-    def __init__():
-        pass
+    def __init__(self):
+        self.headers = {'Accept': 'application/json', 'Content-type': 'application/json'}
 
     @staticmethod
     def set_session(username: str, password: str) -> Session:
@@ -32,7 +34,7 @@ class ServerInstance(Instance):
         verify_api_endpoint = f'{self.api}/admin/cluster'
         self.verify_session(verify_api_endpoint, self.session)
 
-    def _verify_url(self):
+    def _verify_url(self) -> None:
         try:
             r = self.session.get(f'{self.url}/status')
             self.ssl_verified = True #Using https and ssl cert is good
@@ -43,7 +45,7 @@ class ServerInstance(Instance):
         if not "RUNNING" in r.text:
             raise InstanceNotAvailable(f'Did not get a "RUNNING" response from the url "{self.url}/status"')
         
-    def get_api(self, endpoint=None, headers=None, params=None):
+    def get_api(self, endpoint=None, headers=None, params=None) -> Response:
         r = self.session.get(endpoint, headers=headers, params=params, verify=self.ssl_verified)
         return r
 
@@ -68,3 +70,24 @@ class CloudInstance(Instance):
         r = self.session.get(endpoint, headers=headers)
         r_json = r.json()
         return r_json.get('uuid')
+
+    def get_api(self, endpoint) -> Response:
+        r = self.session.get(endpoint, headers=self.headers)
+        if r.status_code == 429:
+            print("WARN: Hit api rate limit, sleeping for 10 seconds and then trying to resume...")
+            sleep(10)
+        return r
+
+    def post_api(self, endpoint, payload) -> Response:
+        r = self.session.post(endpoint, data=payload)
+        if r.status_code == 429:
+            print("WARN: Hit api rate limit, sleeping for 10 seconds and then trying to resume...")
+            sleep(10)
+        return r
+
+    def put_api(self, endpoint, payload) -> Response:
+        r = self.session.put(endpoint, data=payload, headers=self.headers)
+        if r.status_code == 429:
+            print("WARN: Hit api rate limit, sleeping for 10 seconds and then trying to resume...")
+            sleep(10)
+        return r
