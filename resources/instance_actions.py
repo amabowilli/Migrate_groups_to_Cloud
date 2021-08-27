@@ -236,7 +236,7 @@ class CloudActions(CloudInstance):
         '''
         endpoint = f'{self.api}/1.0/groups/{self.workspace}/{group_name}/'
         payload = {'permission': permission}
-        r = self.put_api(endpoint, payload)
+        r = self.put_api(endpoint, payload, "json")
         if r.status_code == 200:
             return True
         return False
@@ -245,7 +245,7 @@ class CloudActions(CloudInstance):
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
         payload = '{}'
         endpoint = f'{self.api}/1.0/groups/{self.workspace}/{group}/members/{member.emailAddress}/'
-        r = self.put_api(endpoint, payload)
+        r = self.put_api(endpoint, payload, "data")
         if r.status_code == 200:
             return True
         elif r.status_code == 409:
@@ -254,7 +254,7 @@ class CloudActions(CloudInstance):
         # 404 is thrown if the user isn't within the workspace yet
         return False
 
-    def verify_repo_exists(self, repo_slug: str):
+    def verify_repo_exists(self, repo_slug: str) -> bool:
         # https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D#get
         endpoint = f'{self.api}/2.0/repositories/{self.workspace}/{repo_slug}'
         r = self.get_api(endpoint)
@@ -265,8 +265,8 @@ class CloudActions(CloudInstance):
     def add_group_to_repo(self, repo_slug: str, group_name: str, flattened_permission: str) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/group-privileges-endpoint/
         payload = flattened_permission
-        endpoint = f'{self.api}/1.0/group-privileges/{self.workspace}/{repo_slug}/{self.uuid}/{group_name}'
-        r = self.put_api(endpoint, payload)
+        endpoint = f'{self.api}/1.0/group-privileges/{self.workspace}/{repo_slug}/{self.workspace}/{group_name}'
+        r = self.put_api(endpoint, payload, "data")
         if r.status_code == 200:
             return True
         return False
