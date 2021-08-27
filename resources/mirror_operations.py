@@ -44,16 +44,24 @@ class ServerDetails:
 
 class ActionOnItems:
     @staticmethod
-    def mirror_groups(server: ServerInstance, cloud: CloudInstance, groups_to_migrate: list[str], global_groups: list[Group]) -> None:
+    def mirror_groups(server: ServerInstance, cloud: CloudInstance, groups_to_migrate: list[str], global_groups: list[Group]) -> dict:
         group_counter = 0
         group_memberships = 0
-        
+        group_workspace_privileges = {'create_repositories': [], 'admin_workspace': []}
+
         for group_name in groups_to_migrate:
             if not CA.create_group(cloud, group_name):
                 print(f'WARN: Failed to mirror group "{group_name}" to your cloud instance for unknown reason.')
                 continue
-            if not ActionOnItems.add_group_global_perms(cloud, group_name, global_groups):
+            success, permission = ActionOnItems.add_group_global_perms(cloud, group_name, global_groups)
+            if not success:
                 print(f'WARN: Failed to apply global permissions to {group_name} within your cloud instance.')
+            if permission == "create_repositories":
+                group_workspace_privileges.get('create_repositories').append(group_name)
+            elif permission == "admin_workspace":
+                group_workspace_privileges.get('admin_workspace').append(group_name)
+            #if not ActionOnItems.add_group_global_perms(cloud, group_name, global_groups):
+            #    print(f'WARN: Failed to apply global permissions to {group_name} within your cloud instance.')
             group_migration = {'total_users': [], 'migrated_users': []}
             group_counter += 1
             for member in SA.get_group_members(server, group_name):
@@ -71,31 +79,28 @@ class ActionOnItems:
                 print('-'*10)
 
         print(f'INFO: Mirrored {group_counter} groups with {group_memberships} group membership assignments')
+        return group_workspace_privileges
 
     @staticmethod
-    def add_group_global_perms(cloud: CloudInstance, group_name: str, global_groups: list[Group]) -> bool:
+    def add_group_global_perms(cloud: CloudInstance, group_name: str, global_groups: list[Group]) -> tuple[bool, str]:
         try:
             group = [group for group in global_groups if group.name == group_name][0]
         except IndexError:
             # the group_name doesn't have to be found within global_groups so simply skip if this is the case
-            return True
+            return True, None
+
         if group.permission == "LICENSED_USER":
             # do nothing as this is already implied by existing in the workspace
-            return True
+            return True, None
         elif group.permission == "PROJECT_CREATE":
-            privilege = "none" # No default read/write/admin on any existing content
-            account_privilege = "collaborator" # Can create new content though
+            # No default read/write/admin on any existing content
+            return True, "create repositories"
         elif group.permission == "ADMIN":
-            privilege = "admin" # Admin on all existing content
-            account_privilege = "collaborator" # Can create new content
+            return CA.set_group_global_access(cloud, group.name, "admin"), "create_repositories"
         elif group.permission == "SYS_ADMIN":
-            privilege = "admin" # Admin on all existing content
-            account_privilege = "admin" # Admin on workspace itself
+            return CA.set_group_global_access(cloud, group.name, "admin"), "admin_workspace"
 
-        if CA.set_group_global_permissions(cloud, group.name, privilege, account_privilege):
-            return True
-
-        return False
+        return False, None
 
     @staticmethod
     def mirror_repo_groups(server: ServerInstance, cloud: CloudInstance, groups_to_migrate: list[str], server_structure: list[Project]) -> None:
@@ -159,3 +164,14 @@ class ActionOnItems:
         elif permission in ["PROJECT_READ", "REPO_READ"]:
             permission = "Read"
         return permission
+
+    @staticmethod
+    def print_group_privilege_details(group_workspace_privileges: dict, workspace_name: str) -> None:
+        print("\n\nThe following groups had a level of permission within Bitbucket Server that the API does not allow this script to mirror.\n"
+              f"We recommend going to your workspace group settings page, Found at: https://bitbucket.org/{workspace_name}/workspace/settings/groups, to add the following settings:")
+        
+        print('\n"Create Repositories"')
+        print(group_workspace_privileges.get('create_repositories'))
+
+        print('\n"Administer Workspace" (inherits the "Create Repositories" permission.')
+        print(group_workspace_privileges.get('admin_workspace'))
