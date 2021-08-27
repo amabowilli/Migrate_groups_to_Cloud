@@ -16,8 +16,9 @@ def main() -> None:
     '''
 
     groups_to_migrate, global_groups, server_structure = SD.scan_server_structure(server)
-    AOI.mirror_groups(server, cloud, groups_to_migrate, global_groups)
+    group_workspace_privileges = AOI.mirror_groups(server, cloud, groups_to_migrate, global_groups)
     AOI.mirror_repo_groups(server, cloud, groups_to_migrate, server_structure)
+    AOI.print_group_privilege_details(group_workspace_privileges, cloud.workspace)
 
 
 if __name__ == '__main__':
