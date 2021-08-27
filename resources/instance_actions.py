@@ -201,7 +201,7 @@ class CloudActions(CloudInstance):
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
         payload = f'name={group_name}'
         endpoint = f'{self.api}/1.0/groups/{self.workspace}'
-        r = self.session.post(endpoint, data=payload)
+        r = self.post_api(endpoint, payload)
         if r.status_code == 200:
             # Successfully created
             return True
@@ -211,11 +211,12 @@ class CloudActions(CloudInstance):
         else:
             return False
 
+    ''' Removed as the endpoint does not allow token based auth and thus cannot be used
     def set_group_global_permissions(self, group_name: str, privilege: str, account_privilege: str) -> bool:
-        '''
+        """
         param privilege: can be "None", "Read", "Write", or "Admin". Applies the given default permission to all repos within the workspace
         param account_privilege: can be "None", "collaborator", or "admin". Enables the checkboxes for "Create Repositories" and "Administer workspace" respectively
-        '''
+        """
         # TODO replies with a 400 currently. Doesn't look like it will accept user/pass so I tried using a cookie but that also hasn't worked yet. Needs more testing
         # sourced from web broswer devpanel, no public API available
         endpoint = f"https://bitbucket.org/api/internal/workspaces/{self.workspace}/groups/{group_name}"
@@ -226,27 +227,37 @@ class CloudActions(CloudInstance):
             return True
         else:
             return False
+    '''
+    def set_group_global_access(self, group_name: str, permission: str) -> bool:
+        # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
+        '''
+        sets default permission of group over all repos in workspace
+        param: permission - can be "read", "write", or "admin"
+        '''
+        endpoint = f'{self.api}/1.0/groups/{self.workspace}/{group_name}/'
+        payload = {'permission': permission}
+        r = self.put_api(endpoint, payload)
+        if r.status_code == 200:
+            return True
+        return False
 
     def add_member_to_group(self, group: str, member: User) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
-        headers = {'Content-type': 'application/json'}
         payload = '{}'
         endpoint = f'{self.api}/1.0/groups/{self.workspace}/{group}/members/{member.emailAddress}/'
-        r = self.session.put(endpoint, headers=headers, data=payload)
+        r = self.put_api(endpoint, payload)
         if r.status_code == 200:
             return True
         elif r.status_code == 409:
             # 409 is thrown if the user is already in the group
             return True
-        else:
-            # 404 is thrown if the user isn't within the workspace yet
-            return False
+        # 404 is thrown if the user isn't within the workspace yet
+        return False
 
     def verify_repo_exists(self, repo_slug: str):
         # https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Bworkspace%7D/%7Brepo_slug%7D#get
-        headers = {'Accept': 'application/json'}
         endpoint = f'{self.api}/2.0/repositories/{self.workspace}/{repo_slug}'
-        r = self.session.get(endpoint, headers=headers)
+        r = self.get_api(endpoint)
         if r.status_code == 200:
             return True
         return False
@@ -255,8 +266,7 @@ class CloudActions(CloudInstance):
         # https://support.atlassian.com/bitbucket-cloud/docs/group-privileges-endpoint/
         payload = flattened_permission
         endpoint = f'{self.api}/1.0/group-privileges/{self.workspace}/{repo_slug}/{self.uuid}/{group_name}'
-        r = self.session.put(endpoint, data=payload)
+        r = self.put_api(endpoint, payload)
         if r.status_code == 200:
             return True
-        else:
-            return False
+        return False
