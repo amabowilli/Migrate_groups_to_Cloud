@@ -171,7 +171,7 @@ class ActionOnItems:
               f"We recommend going to your workspace group settings page, Found at: https://bitbucket.org/{workspace_name}/workspace/settings/groups, to add the following settings:")
         
         print('\n----- "Create Repositories" -----')
-        print(group_workspace_privileges.get('create_repositories'))
+        print(', '.join(group_workspace_privileges.get('create_repositories')))
 
         print('\n----- "Administer Workspace" ----- (automatically inherits the "Create Repositories" permission)')
-        print(group_workspace_privileges.get('admin_workspace'))
+        print(', '.join(group_workspace_privileges.get('admin_workspace')))
