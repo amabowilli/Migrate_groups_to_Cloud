@@ -9,16 +9,16 @@ This script only migrates group permissions and does not replicate individual us
 This tool is written to allow the mirroring of groups, their user membership and their permissions, from Bitbucket Server/DC to Bitbucket Cloud. It is intended that you first migrate your repositories and users via the [Bitbucket Cloud migration assistant](https://www.atlassian.com/software/bitbucket/migration-assistant) (aka "BCMA") as this will ensure your repos and users exist before this tool can be effectively used.
 
 ## How to Use
-Rename or copy the "env_template.py" file to "env.py" and populate all fields
+Rename or copy the "env_template.py" file to "env.py" and populate all fields.
 
-Configure python virtual environment and install package dependencies with:
+Configure python virtual environment and install package dependencies with the follow commands:
 
         python3 -m venv venv
         source venv/Scripts/activate  # If using gitbash on Windows
         source venv/bin/activate      # If on linux/mac
         pip3 install -r requirements.txt
 
-Run script with:
+Run script with python 3.6+ via:
 
         python3 mirror_group_permissions.py
 
