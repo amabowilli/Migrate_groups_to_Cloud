@@ -18,9 +18,12 @@ Configure python virtual environment and install package dependencies with the f
         source venv/bin/activate      # If on linux/mac
         pip3 install -r requirements.txt
 
-Run script with python 3.6+ via:
+Run script with python via:
 
         python3 mirror_group_permissions.py
+
+Note:
+This script was written in python 3.9 (to add f-strings from 3.6 and extended type hinting in 3.9).
 
 ## Notes
 * Users and groups that already exist within your cloud instance will be counted as successful user/group migrations in the counters included in the output
