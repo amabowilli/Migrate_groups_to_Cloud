@@ -170,8 +170,8 @@ class ActionOnItems:
         print("\n\nThe following groups had a level of permission within Bitbucket Server that the API does not allow this script to mirror.\n"
               f"We recommend going to your workspace group settings page, Found at: https://bitbucket.org/{workspace_name}/workspace/settings/groups, to add the following settings:")
         
-        print('\n"Create Repositories"')
+        print('\n----- "Create Repositories" -----')
         print(group_workspace_privileges.get('create_repositories'))
 
-        print('\n"Administer Workspace" (inherits the "Create Repositories" permission.')
+        print('\n----- "Administer Workspace" ----- (automatically inherits the "Create Repositories" permission)')
         print(group_workspace_privileges.get('admin_workspace'))
