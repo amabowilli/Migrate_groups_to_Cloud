@@ -57,7 +57,6 @@ class CloudInstance(Instance):
         self.username = env.cloud_username
         self.password = env.cloud_password
         self.workspace = env.cloud_workspace
-        self.cookie = env.cloud_session_cookie
         self.url = f"https://bitbucket.org/{self.workspace}"
         self.api = "https://api.bitbucket.org"
         self.session = self.set_session(self.username, self.password)
