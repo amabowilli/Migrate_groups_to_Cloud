@@ -211,23 +211,6 @@ class CloudActions(CloudInstance):
         else:
             return False
 
-    ''' Removed as the endpoint does not allow token based auth and thus cannot be used
-    def set_group_global_permissions(self, group_name: str, privilege: str, account_privilege: str) -> bool:
-        """
-        param privilege: can be "None", "Read", "Write", or "Admin". Applies the given default permission to all repos within the workspace
-        param account_privilege: can be "None", "collaborator", or "admin". Enables the checkboxes for "Create Repositories" and "Administer workspace" respectively
-        """
-        # TODO replies with a 400 currently. Doesn't look like it will accept user/pass so I tried using a cookie but that also hasn't worked yet. Needs more testing
-        # sourced from web broswer devpanel, no public API available
-        endpoint = f"https://bitbucket.org/api/internal/workspaces/{self.workspace}/groups/{group_name}"
-        headers = {"Accept": "application/json", "Content-type": "application/json", "cookie": self.cookie}
-        payload = {"name": group_name, "privilege": privilege, "account_privilege": account_privilege, 'email_forwarding_disabled': False}
-        r = self.session.put(endpoint, headers=headers, data=payload)
-        if r.status_code == 200:
-            return True
-        else:
-            return False
-    '''
     def set_group_global_access(self, group_name: str, permission: str) -> bool:
         # https://support.atlassian.com/bitbucket-cloud/docs/groups-endpoint/
         '''
