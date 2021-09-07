@@ -94,7 +94,7 @@ class ActionOnItems:
             return True, None
         elif group.permission == "PROJECT_CREATE":
             # No default read/write/admin on any existing content
-            return True, "create repositories"
+            return True, "create_repositories"
         elif group.permission == "ADMIN":
             return CA.set_group_global_access(cloud, group.name, "admin"), "create_repositories"
         elif group.permission == "SYS_ADMIN":
