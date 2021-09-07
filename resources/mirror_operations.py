@@ -60,8 +60,6 @@ class ActionOnItems:
                 group_workspace_privileges.get('create_repositories').append(group_name)
             elif permission == "admin_workspace":
                 group_workspace_privileges.get('admin_workspace').append(group_name)
-            #if not ActionOnItems.add_group_global_perms(cloud, group_name, global_groups):
-            #    print(f'WARN: Failed to apply global permissions to {group_name} within your cloud instance.')
             group_migration = {'total_users': [], 'migrated_users': []}
             group_counter += 1
             for member in SA.get_group_members(server, group_name):
@@ -73,7 +71,8 @@ class ActionOnItems:
             if len(group_migration['total_users']) == len(group_migration['migrated_users']):
                 print(f'INFO: Successfully migrated all {len(group_migration["total_users"])} users in group: {group_name}')
             else:
-                print(f"WARN: Successfully migrated {len(group_migration['migrated_users'])} of {len(group_migration['total_users'])} members of {group_name}. Failed to mirror the following users to the group's membership:")
+                print(f"WARN: Successfully migrated {len(group_migration['migrated_users'])} of {len(group_migration['total_users'])} members of {group_name}.",
+                      "Failed to mirror the following users to the group's membership (Likely due to the user not being present in the workspace):")
                 print('-'*10)
                 print(', '.join([user_email for user_email in group_migration['total_users'] if user_email not in group_migration['migrated_users']]))
                 print('-'*10)
