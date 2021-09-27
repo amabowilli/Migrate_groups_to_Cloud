@@ -1,6 +1,7 @@
 from resources.instance_actions import Group, Project, Repository, ServerActions as SA, CloudActions as CA
 from resources.instance_init import ServerInstance, CloudInstance
 from typing import Tuple
+from .instance_actions import Project
 
 class ServerDetails:
     @staticmethod
@@ -19,7 +20,7 @@ class ServerDetails:
         return groups_to_migrate, global_groups, server_structure
 
     @staticmethod
-    def get_project_and_repo_structure(server: ServerInstance) -> Tuple[list[Group], list]:
+    def get_project_and_repo_structure(server: ServerInstance) -> Tuple[list[Group], list[Project]]:
         used_groups = []
         project_repo_structure = []
         ''' TODO
@@ -85,7 +86,7 @@ class ActionOnItems:
         try:
             group = [group for group in global_groups if group.name == group_name][0]
         except IndexError:
-            # the group_name doesn't have to be found within global_groups so simply skip if this is the case
+            # not every group must be a global group in server, if this is the case then simply skip
             return True, None
 
         if group.permission == "LICENSED_USER":
